@@ -3,3 +3,11 @@ venv
 my_datapoint_api_key.txt
 
 my_lat_lon.csv
+
+my_accuweather_api_key.txt
+
+.cache.sqlite
+
+**/*.DS_Store
+
+__pycache__
