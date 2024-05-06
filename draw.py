@@ -33,10 +33,16 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 font = {18: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 18),
+        20: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 20),
+        22: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 22),
         24: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 24),
+        26: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 26),
         28: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 28),
+        30: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 30),
         32: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 32),
+        34: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 34),
         36: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 36),
+        40: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 40),
         48: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 48),
         56: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 56),
         64: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 64),
@@ -62,44 +68,61 @@ def place_icon(Mimage, draw, iconpath, x, y, width, height):
     # Open the image to overlay
     overlay_image = Image.open(iconpath).convert("RGBA")
     # Resize the overlay image to fit the desired size
-    if construction: draw.rectangle((x, y, x+width, y+height), outline=0, fill = 255)
-    overlay_image.thumbnail((width, height))
+    overlay_image = overlay_image.resize((width, height), Image.HAMMING)
     # Paste the overlay image onto the existing image
     Mimage.paste(overlay_image, (x, y), overlay_image)
+    if construction: draw.rectangle((x, y, x+width, y+height), outline=0)
     return
 
 
-def place_infobox(draw,today,hourly_df,x,y,squaresize=64,fontsize=24):
-    if construction: draw.rectangle((x, y, x+64*2+buffer, y+64*2+buffer*1), outline=0, fill = 255)
+def place_infobox(Himage,draw,today,hourly_df,x,y,squaresize=64,fontsize=24):
+    if construction: draw.rectangle((x, y, x+squaresize*2+buffer*2, y+squaresize+buffer*1), outline=0, fill = 255)
 
     # place the temperature min and max
-    maxtemp = round(today["RealFeelTemperatureMax"]['Value'])
-    mintemp = round(today["RealFeelTemperatureMin"]['Value'])
+    # method 1 for finding the max and min temperatures
+    maxtemp = 0
+    for row in hourly_df["RealFeelTemperature"]:
+        if row["Value"]>maxtemp:
+            maxtemp = row["Value"]
+    maxtemp = round(maxtemp)
+    #
+    mintemp = 1e32
+    for row in hourly_df["RealFeelTemperature"]:
+        if row["Value"]<mintemp:
+            mintemp = row["Value"]
+    mintemp = round(mintemp)
+    # method 2 for finding the max and min temperatures
+    # maxtemp = round(today["RealFeelTemperatureMax"]['Value'])
+    # mintemp = round(today["RealFeelTemperatureMin"]['Value'])
+    # now place the max and min temperatures
     draw.text((x, y), 'MAX: '+str(maxtemp), font = font[32], fill = 0)
     draw.text((x, y+36), 'MIN: '+str(mintemp), font = font[32], fill = 0)
 
     # place the moon icon
-    y=y+80
-    place_moon(draw,today["Moon"]["Age"],x,y,squaresize=squaresize,fontsize=fontsize)
+    y=y+squaresize+buffer*2
+    place_moon(Himage,draw,today["Moon"]["Age"],x,y,squaresize=squaresize,fontsize=fontsize)
 
     # place the precipitation probability
     precipitation_probability = round(hourly_df["PrecipitationProbability"].sum()/hourly_df["PrecipitationProbability"].size)
-    place_precipitation(draw,precipitation_probability, x,y+64+buffer,squaresize=squaresize,fontsize=fontsize)
+    place_precipitation(Himage,draw,precipitation_probability, x,y+squaresize+buffer,squaresize=squaresize,fontsize=18)
 
     # place the UV index
     uvindex = today["UVIndex"]["Value"]
-    place_uvindex(draw,uvindex,x+64+2*buffer,y,squaresize=64,fontsize=64)
+    place_uvindex(Himage,draw,uvindex,x+squaresize+2*buffer,y,squaresize=squaresize,fontsize=64)
 
     # place the pollen
-    maxpollen = max(today["Tree"]["Value"],today["Grass"]["Value"],today["Ragweed"]["Value"])
-    place_pollen(draw,maxpollen,x+64+2*buffer,y+64+buffer,squaresize=64,fontsize=24)
+    # maxpollen = max(today["Tree"]["Value"],today["Grass"]["Value"],today["Ragweed"]["Value"])
+    # place_pollen(Himage,draw,maxpollen,x+64+2*buffer,y+64+buffer,squaresize=64,fontsize=24)
+
+    place_wind(Himage,draw,hourly_df["Wind"],x+squaresize+2*buffer,y+squaresize+buffer,squaresize=squaresize,fontsize=24)
 
     # place the sunrise and sunset
-    place_sunrise(draw,x,y+64*2+2*buffer,squaresize=64,fontsize=24)
-    place_sunset(draw,x+64+2*buffer,y+64*2+2*buffer,squaresize=64,fontsize=24)
+    place_sunrise(Himage,draw,x,y+squaresize*2+2*buffer,squaresize=squaresize,fontsize=24)
+    place_sunset(Himage,draw,x+squaresize+2*buffer,y+squaresize*2+2*buffer,squaresize=squaresize,fontsize=24)
 
+    return
 
-def today_rectangle(draw,x,y,daily_df,hourly_df,current_df):
+def today_rectangle(Himage,draw,x,y,daily_df,hourly_df,current_df):
     if construction: draw.rectangle((x, y, splitpos-2*buffer, today_tomorrow_split-buffer), outline=0)
 
     iconsize = 128
@@ -111,28 +134,26 @@ def today_rectangle(draw,x,y,daily_df,hourly_df,current_df):
     x1=x1+128+buffer
     place_icon(Himage, draw, ip.whichicon(daily_df["IconNight"].iloc[0],iconsize=128,day=False), x1, y1, iconsize, iconsize)
 
-    place_infobox(draw,daily_df.iloc[0],hourly_df,x+buffer+280,y+1)
+    place_infobox(Himage,draw,daily_df.iloc[0],hourly_df,x+buffer+280,y)
 
     return
 
 
-def tomorrow_rectangle(draw,x,y,tomorrow):
+def day_rectangle(Himage,draw,x,y,day,daystring):
     if construction: draw.rectangle((x, y, splitpos-2*buffer, epd.height-buffer), outline=0, fill = 255)
-    draw.text((x, y), 'Tomorrow', font = font[36])
+    draw.text((x, y), daystring, font = font[36])
 
     iconsize = 96
-    y1 = y+50
-    place_icon(Himage, draw, ip.whichicon(tomorrow["IconDay"],iconsize=96,day=True), x, y1, iconsize, iconsize)
+    y1 = y+48
+    place_icon(Himage, draw, ip.whichicon(day["IconDay"],iconsize=96,day=True), x, y1, iconsize, iconsize)
     x1 = x+96+buffer
-    print(tomorrow["IconNight"])
-    place_icon(Himage, draw, ip.whichicon(tomorrow["IconNight"],iconsize=96,day=False), x1, y1, iconsize, iconsize)
+    place_icon(Himage, draw, ip.whichicon(day["IconNight"],iconsize=96,day=False), x1, y1, iconsize, iconsize)
 
-    pass
+    return
 
 
-def nextday_rectangle(draw,x,y,nextday):
-    def days_from_now(n):
-        return date.today() + timedelta(n)
+def nextday_rectangle(Himage,draw,x,y,nextday):
+
     if construction: draw.rectangle((x, y, splitpos-2*buffer, epd.height-buffer), outline=0, fill = 255)
 
     draw.text((x, y), days_from_now(2).strftime('%A'), font = font[36], fill = 0)
@@ -143,7 +164,7 @@ def nextday_rectangle(draw,x,y,nextday):
     x1 = x+96+buffer
     place_icon(Himage, draw, ip.whichicon(nextday["IconNight"],iconsize=96,day=False), x1, y1, iconsize, iconsize)
 
-    pass
+    return
 
 
 def date_rectangle(draw,x,y):
@@ -157,27 +178,28 @@ def date_rectangle(draw,x,y):
     def draw_date(draw,x,y,fontsize):
         draw.text((x, y), time.strftime('%d %b %-y'), font = font[fontsize], fill = 0)
         return
-    x1 = x+300
+    clockheight, clockwidth, (dummy1,dummy2) = draw_HHMM(draw,x,y-16,112) # run once to get the clockheight and clockwidth
+    x1 = x+clockwidth
     y1 = y+128+buffer*3
-    if construction: draw.rectangle((x, y, x1, y1), outline=255,fill=255)
+    draw.rectangle((x, y, x1, y1), outline=255, fill=255)
     if construction: draw.rectangle((x, y, x1, y1), outline=0)
     draw_HHMM(draw,x,y-16,112)
     draw_date(draw,x,y+80+buffer,56)
     return
 
 
-def place_smallweathericon(draw,row,x,y,squaresize,iconsize):
-    if construction: draw.rectangle((x1pos, ypos, x1pos+squaresize, ypos+squaresize), outline=0)
+def place_smallweathericon(Himage,draw,row,x,y,squaresize,iconsize):
+    if construction: draw.rectangle((x, y, x+squaresize, y+squaresize), outline=0)
     day = row["IsDaylight"] # True or False for day or night
     place_icon(Himage, draw, ip.whichicon(row["WeatherIcon"],iconsize=iconsize,day=day), x, y, iconsize, iconsize)
     return
 
 
-def place_temperature(draw,temperature,x,y,squaresize,fontsize):
+def place_temperature(Himage,draw,temperature,x,y,squaresize,fontsize):
     temperature = round(temperature)
-    if temperature < 15:
+    if temperature < 11:
         place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/075-thermometer-4.png', x, y, squaresize, squaresize)
-    elif temperature < 18:
+    elif temperature < 19:
         place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/056-thermometer-1.png', x-18, y, squaresize, squaresize)
     else:
         place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/078-thermometer-6.png', x, y, squaresize, squaresize)
@@ -186,11 +208,10 @@ def place_temperature(draw,temperature,x,y,squaresize,fontsize):
     return
 
 
-def place_moon(draw,moon_age,x,y,squaresize,fontsize):
+def place_moon(Himage,draw,moon_age,x,y,squaresize,fontsize):
     # Moon_age should be the days since new moon
     if construction: draw.rectangle((x, y, x+squaresize, y+squaresize), outline=0)
-    print(moon_age)
-    if moon_age==0:
+    if moon_age==0: #TODO: this needs to be checked and possibly corrected
         place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/064-moon-phase-1.png', x, y, squaresize, squaresize)
     elif moon_age<7:
         place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/065-moon-phase-2.png', x, y, squaresize, squaresize)
@@ -204,9 +225,9 @@ def place_moon(draw,moon_age,x,y,squaresize,fontsize):
         place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/069-moon-phase-6.png', x, y, squaresize, squaresize)
     else: #this should not trigger!
         place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/064-moon-phase-1.png', x, y, squaresize, squaresize)
+    return
 
-
-def place_pollen(draw,maxpollen,x,y,squaresize,fontsize):
+def place_pollen(Himage,draw,maxpollen,x,y,squaresize,fontsize):
     if construction: draw.rectangle((x, y, x+squaresize, y+squaresize), outline=0)
     if maxpollen<3: # low - no protection required
         place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/059-pollen.png', x, y, squaresize, squaresize)
@@ -214,9 +235,29 @@ def place_pollen(draw,maxpollen,x,y,squaresize,fontsize):
         place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/060-pollen-1.png', x, y, squaresize, squaresize)
     elif maxpollen<=6:   # high - protection required
         place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/060-pollen-1.png', x, y, squaresize, squaresize)
+    return
+
+def place_wind(Himage,draw,wind_data,x,y,squaresize,fontsize):
+    maxwind = 0
+    for datum in wind_data:
+        if datum["Speed"]["Value"]>maxwind:
+            maxwind = datum["Speed"]["Value"]
+
+    maxwind = round(maxwind)
+    if maxwind<5: # low - little wind
+        pass
+    elif maxwind<10: # medium - some wind
+        place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/072-wind-1.png', x, y, squaresize, squaresize)
+    elif maxwind<15: # high - windy
+        place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/072-wind-1.png', x, y, squaresize, squaresize)
+    elif maxwind<20: # very high - very windy
+        place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/072-wind-1.png', x, y, squaresize, squaresize)
+    else: # extreme - very windy
+        place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/072-wind-1.png', x, y, squaresize, squaresize)
+    return
 
 
-def place_sunrise(draw,x,y,squaresize,fontsize):
+def place_sunrise(Himage,draw,x,y,squaresize,fontsize):
     from suntime import Sun
     from read_from_files import read_lat_lon
 
@@ -235,7 +276,7 @@ def place_sunrise(draw,x,y,squaresize,fontsize):
     return
 
 
-def place_sunset(draw,x,y,squaresize,fontsize):
+def place_sunset(Himage,draw,x,y,squaresize,fontsize):
     from suntime import Sun
     from read_from_files import read_lat_lon
 
@@ -254,32 +295,34 @@ def place_sunset(draw,x,y,squaresize,fontsize):
     return
 
 
-def place_precipitation(draw,probability,x,y,squaresize,fontsize):
+def place_precipitation(Himage,draw,probability,x,y,squaresize,fontsize):
     if construction: draw.rectangle((x, y, x+squaresize, y+squaresize), outline=0)
-    place_icon(Himage, draw, 'icons/pack1-'+str(fontsize)+'/png/088-humidity.png', x, y, 24, 24)
-    bbox = draw.textbbox((x, y), "100%", font=font[fontsize])
-    if construction: draw.rectangle(bbox, outline="black")
-    percheight = bbox[3]-bbox[1]
-    percwidth = bbox[2]-bbox[0]
-    draw.text((x+32//3, y+36), str(probability)+"%", font = font[fontsize], fill = 0)
+    place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/040-drop-1.png', x, y, 64, 64)
+    # bbox = draw.textbbox((x, y), "100%", font=font[fontsize])
+    # if construction: draw.rectangle(bbox, outline="black")
+    # percheight = bbox[3]-bbox[1]
+    # percwidth = bbox[2]-bbox[0]
+    draw.text((x+squaresize//4-2, y+30), str(probability)+"%", font = font[fontsize], fill = 0)
     return
 
 
-def place_uvindex(draw,uvindex,x,y,squaresize=64,fontsize=24):
+def place_uvindex(Himage,draw,uvindex,x,y,squaresize=64,fontsize=24):
     if construction: draw.rectangle((x, y, x+squaresize, y+squaresize), outline=0)
     if uvindex<3: # low - no protection required
         pass
     elif uvindex<6: #medium - some protection advised
-        place_icon(Himage, draw, 'icons/pack1-'+str(fontsize)+'/png/051-uv.png', x, y, squaresize, squaresize)
+        place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/051-uv.png', x, y, squaresize, squaresize)
         pass
     elif uvindex<8: # high - protection required
-        place_icon(Himage, draw, 'icons/pack1-'+str(fontsize)+'/png/051-uv.png', x, y, squaresize, squaresize)
+        place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/051-uv.png', x, y, squaresize, squaresize)
     elif uvindex<11: # very high - extra protection required
-        place_icon(Himage, draw, 'icons/pack1-'+str(fontsize)+'/png/051-uv.png', x, y, squaresize, squaresize)
+        place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/051-uv.png', x, y, squaresize, squaresize)
     else: # extreme - extra protection required
-        place_icon(Himage, draw, 'icons/pack1-'+str(fontsize)+'/png/051-uv.png', x, y, squaresize, squaresize)
+        place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/051-uv.png', x, y, squaresize, squaresize)
     return
 
+def days_from_now(n):
+    return date.today() + timedelta(n)
 
 # create basic epd class for testing
 class epd_Cls(object):
@@ -289,18 +332,17 @@ class epd_Cls(object):
         self.width = 800
 
     def clear(self):
-        if os.path.exists(self.savepath):
-            os.remove(self.savepath)
+        if os.path.exists(screensavepath):
+            os.remove(screensavepath)
     def getbuffer(self,Himage):
-        Himage.save(self.savepath, 'PNG')
+        Himage.save(screensavepath, 'PNG')
         return Himage
     def init(self):
         pass
     def display(self,Himage):
-        # Himage.show()
         return
     def display_Partial(self,Himage, a, b, width, height):
-        # Himage.show()
+        Himage.save(screensavepath, 'PNG')
         return
 
 
@@ -341,11 +383,12 @@ try:
         # draw the date rectangle
         date_rectangle(draw,buffer,buffer)
         # draw today rectangle
-        today_rectangle(draw,buffer,buffer,daily_df,hourly_df,current_df)
+        today_rectangle(Himage,draw,buffer,buffer,daily_df,hourly_df,current_df)
         # draw tomorrow rectangle
-        tomorrow_rectangle(draw,buffer,today_tomorrow_split+buffer,daily_df.iloc[1])
+        day_rectangle(Himage,draw,buffer,today_tomorrow_split+buffer,daily_df.iloc[1],'Tomorrow')
         # draw next day rectangle
-        nextday_rectangle(draw,6*buffer+96*2,today_tomorrow_split+buffer,daily_df.iloc[2])
+
+        day_rectangle(Himage,draw,6*buffer+96*2,today_tomorrow_split+buffer,daily_df.iloc[2],days_from_now(2).strftime('%A'))
         # ----------------------------------
         # Draw the next few hours
         num_hours = 6
@@ -367,15 +410,13 @@ try:
             x1pos = xpos+clockwidth+2*buffer
             x2pos = x1pos+squaresize+2*buffer
             x3pos = x2pos+squaresize+2*buffer
-            place_temperature(draw,row['RealFeelTemperature']['Value'],x3pos,ypos,squaresize,24) # draw this first for overlaps
-            place_precipitation(draw,row['PrecipitationProbability'],x1pos,ypos,squaresize,24)
-            place_smallweathericon(draw,row,x2pos,ypos,squaresize,64)
-
-        # Save the image to file
-        Himage.save(screensavepath,'PNG')
+            place_temperature(Himage,draw,row['RealFeelTemperature']['Value'],x3pos,ypos,squaresize,24) # draw this first for overlaps
+            place_precipitation(Himage,draw,row['PrecipitationProbability'],x1pos,ypos,squaresize,18)
+            place_smallweathericon(Himage,draw,row,x2pos,ypos,squaresize,squaresize)
 
         # Display the image with a full refresh
         epd.display(epd.getbuffer(Himage))
+
 
 
     def minutely_display():
@@ -385,10 +426,14 @@ try:
         # over-draw the date rectangle
         date_rectangle(draw,buffer,buffer)
         # Display the image with a partial refresh
-        epd.display_Partial(epd.getbuffer(Himage),0, 0, epd.width, epd.height)
+        epd.display_Partial(epd.getbuffer(Himage), 0, 0, epd.width, epd.height)
 
 
+    #------------
+    # Display the image
+    hourly_display() # display the hourly display on script run
 
+    # Set up the scheduler
     from apscheduler.triggers.cron import CronTrigger
     from apscheduler.triggers.combining import OrTrigger
     from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -401,16 +446,18 @@ try:
     trigger = OrTrigger([CronTrigger(minute='00') ]) #trigger 10 minutes to the hour
     scheduler.add_job(hourly_display, trigger)
     # Add the minutely job
-    trigger = OrTrigger([
-        CronTrigger(minute='01-59'),
-    ])
+    trigger = OrTrigger([CronTrigger(minute='01-59')])
     scheduler.add_job(minutely_display, trigger)
 
     # Keep the script running
     try:
         asyncio.get_event_loop().run_forever()
-    except (KeyboardInterrupt, SystemExit):
+    except SystemExit:
         pass
+    except KeyboardInterrupt:
+        logging.info("ctrl + c:")
+        epd7in5.epdconfig.module_exit(cleanup=True)
+        exit()
 
 except IOError as e:
     logging.info(e)

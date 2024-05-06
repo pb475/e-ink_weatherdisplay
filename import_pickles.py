@@ -12,10 +12,8 @@ def whichicon(weathercode, iconsize, day=True):
     import os
     prefix = "icons/pack1-"+str(iconsize)+"/png/"
     iconfile = prefix + number2icon(weathercode,day=day)
-    print(iconfile)
     if not os.path.exists(iconfile):
         iconfile = "icons/question.png"
-    print(iconfile)
     return iconfile
 
 
@@ -35,7 +33,6 @@ def number2icon(number,day=True):
     # Find the icon
     if df.loc[df['Num'] == number] is not None:
         iconfile = df.loc[df['Num'] == number]["Iconpath"].values[0]
-        # print(iconfile)
 
     # return icon,
     return iconfile
