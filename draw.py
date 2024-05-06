@@ -1,37 +1,42 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-import sys
-import os
-
+import sys, os
+import logging
+import time
+from datetime import timedelta, date
+import traceback
+from PIL import Image,ImageDraw,ImageFont
 import import_pickles as ip
+from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.combining import OrTrigger
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import asyncio
 
-current_df,daily_df,hourly_df,requests_remaining=ip.load_all_pickles()
 
-picdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'e-ink_weatherdisplay/e-Paper/RaspberryPi_JetsonNano/python/pic/')
-libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'e-ink_weatherdisplay/e-Paper/RaspberryPi_JetsonNano/python/lib/')
-
-construction=True
+# Set the mode of the script
+construction=True # set to True for construction mode
+testing=True # set to False for live display
 screensavepath = 'screen_image/img2display.png'
 
+
+# Set the path to the e-ink display library
+picdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'e-ink_weatherdisplay/e-Paper/RaspberryPi_JetsonNano/python/pic/')
+libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'e-ink_weatherdisplay/e-Paper/RaspberryPi_JetsonNano/python/lib/')
 if os.path.exists(libdir):
     sys.path.append(libdir)
 else:
     raise ValueError(str(libdir)+'path does not exist')
-
-import logging
+# import the e-ink display library
 from waveshare_epd import epd7in5
-import time
-from PIL import Image,ImageDraw,ImageFont
-import traceback
-from datetime import datetime
-
-from datetime import timedelta, date
 
 
+# Load the pickled data
+current_df,daily_df,hourly_df,requests_remaining=ip.load_all_pickles()
 
+# Set the logging level
 logging.basicConfig(level=logging.DEBUG)
 
-
+# Set the font sizes
 font = {18: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 18),
         20: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 20),
         22: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 22),
@@ -121,6 +126,7 @@ def place_infobox(Himage,draw,today,hourly_df,x,y,squaresize=64,fontsize=24):
     place_sunset(Himage,draw,x+squaresize+2*buffer,y+squaresize*2+2*buffer,squaresize=squaresize,fontsize=24)
 
     return
+
 
 def today_rectangle(Himage,draw,x,y,daily_df,hourly_df,current_df):
     if construction: draw.rectangle((x, y, splitpos-2*buffer, today_tomorrow_split-buffer), outline=0)
@@ -227,6 +233,7 @@ def place_moon(Himage,draw,moon_age,x,y,squaresize,fontsize):
         place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/064-moon-phase-1.png', x, y, squaresize, squaresize)
     return
 
+
 def place_pollen(Himage,draw,maxpollen,x,y,squaresize,fontsize):
     if construction: draw.rectangle((x, y, x+squaresize, y+squaresize), outline=0)
     if maxpollen<3: # low - no protection required
@@ -236,6 +243,7 @@ def place_pollen(Himage,draw,maxpollen,x,y,squaresize,fontsize):
     elif maxpollen<=6:   # high - protection required
         place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/060-pollen-1.png', x, y, squaresize, squaresize)
     return
+
 
 def place_wind(Himage,draw,wind_data,x,y,squaresize,fontsize):
     maxwind = 0
@@ -321,8 +329,10 @@ def place_uvindex(Himage,draw,uvindex,x,y,squaresize=64,fontsize=24):
         place_icon(Himage, draw, 'icons/pack1-'+str(squaresize)+'/png/051-uv.png', x, y, squaresize, squaresize)
     return
 
+
 def days_from_now(n):
     return date.today() + timedelta(n)
+
 
 # create basic epd class for testing
 class epd_Cls(object):
@@ -345,12 +355,10 @@ class epd_Cls(object):
         Himage.save(screensavepath, 'PNG')
         return
 
-
-
+# Main script
 try:
-    logging.info("epd7in5 Demo")
+    logging.info("epd7in5 e-ink weather display")
 
-    testing=True
     if testing:
         logging.info("RUNNING TESTING CONFIGURATION")
         logging.info("init epd class")
@@ -372,6 +380,7 @@ try:
     # Drawing on the Horizontal image
     logging.info("1.Drawing on the Horizontal image...")
 
+    # Define the display functions to be called by the scheduler hourly
     def hourly_display():
         # Create the image
         Himage = Image.new('1', (epd.width, epd.height), 255)  # 255: clear the frame
@@ -387,15 +396,16 @@ try:
         # draw tomorrow rectangle
         day_rectangle(Himage,draw,buffer,today_tomorrow_split+buffer,daily_df.iloc[1],'Tomorrow')
         # draw next day rectangle
-
         day_rectangle(Himage,draw,6*buffer+96*2,today_tomorrow_split+buffer,daily_df.iloc[2],days_from_now(2).strftime('%A'))
+
         # ----------------------------------
         # Draw the next few hours
         num_hours = 6
         hourly_height = inner_height//6
+        squaresize = 64
         for counter in range(num_hours):
             row = hourly_df.iloc[counter] # extract the row from the dataframe
-            #-----------
+
             the_time=row["DateTime"].partition("t")[2][0:5] # extract the time from the DateTime string
 
             xpos = splitpos+buffer
@@ -405,7 +415,7 @@ try:
             clock_offset = 4
             clockheight,clockwidth,(clockx,clocky)=draw_theHHMM(draw,x=xpos,y=ypos+clock_offset,the_time=the_time,fontsize=48)
 
-            squaresize = 64
+
             # draw the first item
             x1pos = xpos+clockwidth+2*buffer
             x2pos = x1pos+squaresize+2*buffer
@@ -413,12 +423,14 @@ try:
             place_temperature(Himage,draw,row['RealFeelTemperature']['Value'],x3pos,ypos,squaresize,24) # draw this first for overlaps
             place_precipitation(Himage,draw,row['PrecipitationProbability'],x1pos,ypos,squaresize,18)
             place_smallweathericon(Himage,draw,row,x2pos,ypos,squaresize,squaresize)
+            pass # end of loop
 
         # Display the image with a full refresh
         epd.display(epd.getbuffer(Himage))
+        #
+        return
 
-
-
+    # Define the display functions to be called by the scheduler minutely
     def minutely_display():
         # Load the image from savepath
         Himage = Image.open(screensavepath)
@@ -427,17 +439,15 @@ try:
         date_rectangle(draw,buffer,buffer)
         # Display the image with a partial refresh
         epd.display_Partial(epd.getbuffer(Himage), 0, 0, epd.width, epd.height)
+        #
+        return
 
 
     #------------
     # Display the image
     hourly_display() # display the hourly display on script run
 
-    # Set up the scheduler
-    from apscheduler.triggers.cron import CronTrigger
-    from apscheduler.triggers.combining import OrTrigger
-    from apscheduler.schedulers.asyncio import AsyncIOScheduler
-    import asyncio
+    #------------
     # This is the bit which triggers
     # Create a scheduler
     scheduler = AsyncIOScheduler()
