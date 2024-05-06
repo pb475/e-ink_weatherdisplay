@@ -1,0 +1,28 @@
+Num,Icon,Text,Iconpath
+7,Cloudy,Cloudy,004-cloud.png
+8,Dreary,Dreary (Overcast),004-cloud.png
+11,Fog,Fog,021-question.png
+12,Showers,Showers,026-rainy.png
+15,T-Storms,T-Storms,017-storm.png
+18,Rain,Rain,011-rain-1.png
+19,Flurries,Flurries,014-snow.png
+22,Snow,Snow,014-snow.png
+24,Ice,Ice,014-snow.png
+25,Sleet,Sleet,014-snow.png
+26,Freezing Rain,Freezing Rain,011-rain-1.png
+29,Rain and Snow,Rain and Snow,014-snow.png
+30,Hot,Hot,025-moon.png
+31,Cold,Cold,034-snowflake.png
+32,Windy,Wind,035-wind.png
+33,Clear,Clear,025-moon.png
+34,Mostly Clear,Mostly Clear,032-moon-1.png
+35,Partly Cloudy,Partly Cloudy,020-cloudy-night.png
+36,Intermittent Clouds,Intermittent Clouds,021-question.png
+37,Hazy Moonlight,Hazy Moonlight,025-moon.png
+38,Mostly Cloudy,Mostly Cloudy,020-cloudy-night.png
+39,Partly Cloudy w/ Showers,Partly Cloudy w/ Showers,022-rainy-day.png
+40,Mostly Cloudy w/ Showers,Mostly Cloudy w/ Showers,022-rainy-day.png
+41,Partly Cloudy w/ T-Storms,Partly Cloudy w/ T-Storms,017-storm.png
+42,Mostly Cloudy w/ T-Storms,Mostly Cloudy w/ T-Storms,017-storm.png
+43,Mostly Cloudy w/ Flurries,Mostly Cloudy w/ Flurries,014-snow.png
+44,Mostly Cloudy w/ Snow,Mostly Cloudy w/ Snow,014-snow.png
