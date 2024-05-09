@@ -1,29 +1,29 @@
 Num,Icon,Text,Iconpath
-1,Sunny,Sunny,031-sun-3.png
-2,Mostly Sunny,Mostly Sunny,003-cloudy.png
-3,Partly Sunny,Partly Sunny,006-cloudy-1.png
-4,Intermittent Clouds,Intermittent Clouds,006-cloudy-1.png
-5,Hazy Sunshine,Hazy Sunshine,001-sun.png
-6,Mostly Cloudy,Mostly Cloudy,006-cloudy-1.png
-7,Cloudy,Cloudy,004-cloud.png
-8,Dreary,Dreary (Overcast),004-cloud.png
-11,Fog,Fog,009-fog.png
-12,Showers,Showers,022-rainy-day.png
-13,Mostly Cloudy w/ Showers,Mostly Cloudy w/ Showers,022-rainy-day.png
-14,Partly Sunny w/ Showers,Partly Sunny w/ Showers,022-rainy-day.png
-15,T-Storms,T-Storms,017-storm.png
-16,Mostly Cloudy w/ T-Storms,Mostly Cloudy w/ T-Storms,017-storm.png
-17,Partly Sunny w/ T-Storms,Partly Sunny w/ T-Storms,017-storm.png
-18,Rain,Rain,011-rain-1.png
-19,Flurries,Flurries,014-snow.png
-20,Mostly Cloudy w/ Flurries,Mostly Cloudy w/ Flurries,014-snow.png
-21,Partly Sunny w/ Flurries,Partly Sunny w/ Flurries,014-snow.png
-22,Snow,Snow,014-snow.png
-23,Mostly Cloudy w/ Snow,Mostly Cloudy w/ Snow,014-snow.png
-24,Ice,Ice,014-snow.png
-25,Sleet,Sleet,014-snow.png
-26,Freezing Rain,Freezing Rain,011-rain-1.png
-29,Rain and Snow,Rain and Snow,013-rain-3
-30,Hot,Hot,001-sun.png
-31,Cold,Cold,034-snowflake.png
-32,Windy,Windy,035-wind.png
+1,Sunny,Sunny,064-sun-3.bmp
+2,Mostly Sunny,Mostly Sunny,093-cloudy-1_flipped.bmp
+3,Partly Sunny,Partly Sunny,091-cloudy.bmp
+4,Intermittent Clouds,Intermittent Clouds,091-cloudy.bmp
+5,Hazy Sunshine,Hazy Sunshine,063-sun-2.bmp
+6,Mostly Cloudy,Mostly Cloudy,091-cloudy.bmp
+7,Cloudy,Cloudy,095-cloud-2.bmp
+8,Dreary,Dreary (Overcast),094-cloud-1.bmp
+11,Fog,Fog,096-fog-1.bmp
+12,Showers,Showers,086-meteorology.bmp
+13,Mostly Cloudy w/ Showers,Mostly Cloudy w/ Showers,086-meteorology.bmp
+14,Partly Sunny w/ Showers,Partly Sunny w/ Showers,086-meteorology.bmp
+15,T-Storms,T-Storms,084-storm-1.bmp
+16,Mostly Cloudy w/ T-Storms,Mostly Cloudy w/ T-Storms,084-storm-1.bmp
+17,Partly Sunny w/ T-Storms,Partly Sunny w/ T-Storms,084-storm-1.bmp
+18,Rain,Rain,080-rain-5.bmp
+19,Flurries,Flurries,071-snowing.bmp
+20,Mostly Cloudy w/ Flurries,Mostly Cloudy w/ Flurries,071-snowing.bmp
+21,Partly Sunny w/ Flurries,Partly Sunny w/ Flurries,089-snowflakes.bmp
+22,Snow,Snow,071-snowing.bmp
+23,Mostly Cloudy w/ Snow,Mostly Cloudy w/ Snow,071-snowing.bmp
+24,Ice,Ice,071-snowing.bmp
+25,Sleet,Sleet,081-snow.bmp
+26,Freezing Rain,Freezing Rain,080-rain-5.bmp
+29,Rain and Snow,Rain and Snow,081-snow.bmp
+30,Hot,Hot,051-hot.bmp
+31,Cold,Cold,037-cold.bmp
+32,Windy,Windy,036-wind-2.bmp

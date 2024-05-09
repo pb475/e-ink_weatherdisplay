@@ -44,14 +44,14 @@ async def get_data_from_accuweather(latitude,longitude,api_key):
             ClientError,
             RequestsExceededError,
         ) as error:
-            print(f"Error: {error}")
+            logging.info(f"Error: {error}")
             # return None #return None if there is an error
         else:
-            # print(f"Location: {accuweather.location_name} ({accuweather.location_key})")
-            # print(f"Requests remaining: {accuweather.requests_remaining}")
-            # print(f"Current: {current_conditions}")
-            # print(f"Forecast: {forecast_daily}")
-            # print(f"Forecast hourly: {forecast_hourly}")
+            # logging.info(f"Location: {accuweather.location_name} ({accuweather.location_key})")
+            # logging.info(f"Requests remaining: {accuweather.requests_remaining}")
+            # logging.info(f"Current: {current_conditions}")
+            # logging.info(f"Forecast: {forecast_daily}")
+            # logging.info(f"Forecast hourly: {forecast_hourly}")
             return accuweather.requests_remaining,current_conditions,forecast_daily,forecast_hourly
 
 
@@ -70,44 +70,46 @@ def main():
                                                                                                 longitude=latlondict["longitude"],
                                                                                                 api_key=get_api_key_from_file()))
         loop.close()
-        print('API PING SUCCESSFUL '+str(requests_remaining)+" requests remaining.")
+        logging.info('API PING SUCCESSFUL '+str(requests_remaining)+" requests remaining.")
     except:
         raise ValueError
 
-    print('Converting to dataframes')
+    logging.info('Converting to dataframes')
     current_conditions_df = pd.DataFrame(current_conditions)
     forecast_daily_df = pd.DataFrame(forecast_daily)
     forecast_hourly_df = pd.DataFrame(forecast_hourly)
 
     # SAVE THE DATA TO FILE
     # Save accuweather to a files
-    print('pickling requests_remaining')
+    logging.info('pickling data...')
     with open('data/requests_remaining.pkl', 'wb') as file:
         pickle.dump(requests_remaining, file)
-    print('pickling current_conditions')
     current_conditions_df.to_pickle('data/current_conditions_df.pkl')
-    print('pickling forecast_daily')
     forecast_daily_df.to_pickle('data/forecast_daily_df.pkl')
-    print('pickling forecast_hourly')
     forecast_hourly_df.to_pickle('data/forecast_hourly_df.pkl')
 
     return
 
+# Trigger once manually
+logging.info("Running main function manually")
+main()
 
-
+# Trigger every hour
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.combining import OrTrigger
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import asyncio
 # This is the bit which triggers
-cron = CronTrigger(minute='58') #trigger 10 minutes to the hour
+logging.info("Setting up scheduler")
+cron = CronTrigger(minute='50') #trigger 10 minutes to the hour
 trigger = OrTrigger([cron])
 # Create a scheduler
 scheduler = AsyncIOScheduler()
 scheduler.start()
-scheduler.add_job(main, trigger)
+scheduler.add_job(main, trigger, misfire_grace_time=5*60)
 
 # Keep the script running
+logging.info("Running event loop")
 try:
     asyncio.get_event_loop().run_forever()
 except (KeyboardInterrupt, SystemExit):

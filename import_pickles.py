@@ -10,10 +10,10 @@ def loadpickle(file_path):
 
 def whichicon(weathercode, iconsize, day=True):
     import os
-    prefix = "icons/pack1-"+str(iconsize)+"/png/"
+    prefix = "icons/pack1/"+str(iconsize)+"/bmp/"
     iconfile = prefix + number2icon(weathercode,day=day)
     if not os.path.exists(iconfile):
-        iconfile = "icons/question.png"
+        iconfile = prefix+"099-interrogation-mark.bmp"
     return iconfile
 
 
