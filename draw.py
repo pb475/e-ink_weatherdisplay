@@ -31,9 +31,6 @@ else:
 from waveshare_epd import epd7in5
 
 
-# Load the pickled data
-current_df,daily_df,hourly_df,requests_remaining=ip.load_all_pickles()
-
 # Set the logging level
 logging.basicConfig(level=logging.DEBUG)
 
@@ -420,12 +417,24 @@ try:
         Himage = Image.new('1', (epd.width, epd.height), 255)  # 255: clear the frame
         draw = ImageDraw.Draw(Himage)
 
+        # draw the date rectangle
+        date_rectangle(draw,buffer,buffer)
+
+        # Load the pickled data
+        current_df,daily_df,hourly_df,requests_remaining=ip.load_all_pickles()
+        if any([current_df is None,daily_df is None,hourly_df is None,requests_remaining is None]):
+            logging.error("No forecast data, printing error to screen")
+            place_icon(Himage, draw, 'icons/pack1/128/bmp/098-warning-sign.bmp', buffer, buffer+128+64, 128, 128)
+            draw.text((2*buffer+128+24, buffer+128+64+12), "No forecast data available", font = font[36],fill=0)
+            draw.text((2*buffer+128+24, buffer+2*128+12), "Recommendation: check logs", font = font[36],fill=0)
+            # input()
+            epd.display(epd.getbuffer(Himage))
+            return
+
         # draw the left/right split line
         draw.rectangle((splitpos-buffer, buffer, splitpos, epd.height-buffer), outline=0, fill = 0) # draw the split line left/right
         # draw the top/bottom split line
         draw.rectangle((buffer, today_tomorrow_split, splitpos-2*buffer, today_tomorrow_split+buffer), outline=0, fill = 0) # draw the split line today/tomorrow
-        # draw the date rectangle
-        date_rectangle(draw,buffer,buffer)
         # draw today rectangle
         today_rectangle(Himage,draw,buffer,buffer,daily_df,hourly_df,current_df)
         # draw tomorrow rectangle
@@ -434,7 +443,6 @@ try:
         # draw next day rectangle
         x1 = splitpos//2+buffer
         day_rectangle(Himage,draw,x1,y1,daily_df.iloc[2],days_from_now(2).strftime('%A'))
-
 
         # ----------------------------------
         # Draw the next few hours
@@ -463,8 +471,6 @@ try:
             place_smallweathericon(Himage,draw,row,x2pos,ypos,squaresize,squaresize)
             pass # end of loop
 
-
-
         def draw_bmp_scene(Himage,draw,x,y):
             # draw the bmp icon
             bmp_size = 24
@@ -475,6 +481,10 @@ try:
             def place_member(imgname,x,y,bmp_size=24):
                 place_icon(Himage,draw,'icons/pack2/'+str(bmp_size)+'/bmp/'+imgname,x,y,bmp_size,bmp_size)
                 return
+            def scene0():
+                place_member('009-rat.bmp',x, y)
+                place_member('061-platter.bmp',x+bmp_size, y+10,16)
+                pass
             def scene1():
                 place_member('005-goose.bmp',x, y)
                 place_member('001-heart.bmp',x+bmp_size+buffer, y)
@@ -530,7 +540,7 @@ try:
             # now choose which scene to display
             match int(datetime.now().strftime('%d'))%10:
                 case 0:
-                    pass
+                    scene0()
                 case 1:
                     scene1()
                 case 2:

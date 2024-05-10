@@ -2,7 +2,7 @@ from PIL import Image
 import numpy as np
 import os
 
-threshold = 110
+threshold = 100
 
 locations = [
     'pack1/16/png/', 'pack1/24/png/', 'pack1/32/png/', 'pack1/64/png/', 'pack1/96/png/', 'pack1/128/png/', 'pack1/256/png/', 'pack1/512/png/',

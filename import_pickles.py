@@ -1,4 +1,5 @@
 import pickle
+import logging
 
 def loadpickle(file_path):
     # Open the pkl file in read mode
@@ -83,10 +84,14 @@ def number2icon(number,day=True):
 
 def load_all_pickles():
     prefix = 'data/'
-    current_conditions_df = loadpickle(prefix+'current_conditions_df.pkl')
-    forecast_daily_df = loadpickle(prefix+'forecast_daily_df.pkl')
-    forecast_hourly_df = loadpickle(prefix+'forecast_hourly_df.pkl')
-    requests_remaining = loadpickle(prefix+'requests_remaining.pkl')
+    try:
+        current_conditions_df = loadpickle(prefix+'current_conditions_df.pkl')
+        forecast_daily_df = loadpickle(prefix+'forecast_daily_df.pkl')
+        forecast_hourly_df = loadpickle(prefix+'forecast_hourly_df.pkl')
+        requests_remaining = loadpickle(prefix+'requests_remaining.pkl')
+    except:
+        logging.error("Could not load pickled forcast data")
+        return None,None,None,None
 
     return current_conditions_df,forecast_daily_df,forecast_hourly_df,requests_remaining
 
