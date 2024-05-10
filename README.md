@@ -39,7 +39,7 @@ You will want to set this up with the latitude and longitude of wherever you wan
 
 ## E-ink screen
 I used a waveshare 800x400 e-ink screen, originally purchased here:
-(https://www.waveshare.com/7.5inch-e-paper-hat.htm)[https://www.waveshare.com/7.5inch-e-paper-hat.htm]
+[https://www.waveshare.com/7.5inch-e-paper-hat.htm](https://www.waveshare.com/7.5inch-e-paper-hat.htm)
 The code to draw on the screen is not very flexible as it was quicker to use pixel-based adjustments for drawing the items on screen.
 If you're using a different screen, much of the code should be re-usable, but I cannot verify that items will be placed nicely.
 
@@ -56,7 +56,7 @@ To keep the repo tidy, the following was removed:
  - Jetson nano code
 
 See the original repo here:
-(https://github.com/waveshareteam/e-Paper)[https://github.com/waveshareteam/e-Paper]
+[https://github.com/waveshareteam/e-Paper](https://github.com/waveshareteam/e-Paper)
 
 
 ## Icons
