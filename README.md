@@ -4,6 +4,10 @@ A framework to display weather data on e-ink screen.
 ## Example display
 ![screen_image/img2display.example.png](screen_image/img2display.example.png)
 
+## Cloning and submodules
+Important note: this repo uses submodules.
+You should use the command `git clone --recurse-submodules https://github.com/pb475/e-ink_weatherdisplay` to ensure all submodules are pulled in and initialised as well.
+
 ## Accuweather api
 I tried several free apis to get the weather data I needed, these were either at too low resolution in time, low spacial resolution, or didn't offer the outputs I wanted.
 Eventually I settled on accuweather.
