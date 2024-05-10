@@ -16,9 +16,9 @@ import asyncio
 # Set the mode of the script
 construction=False # set to True for construction mode
 testing=True # set to False for live display
-screensavepath = 'screen_image/img2display.png'
-funmode = True # set to False for boring mode
+funmode = False # set to False for boring mode
 
+screensavepath = 'screen_image/img2display.png'
 
 # Set the path to the e-ink display library
 picdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'e-ink_weatherdisplay/e-Paper/RaspberryPi_JetsonNano/python/pic/')
