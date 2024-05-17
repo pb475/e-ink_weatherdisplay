@@ -14,8 +14,8 @@ import asyncio
 
 
 # Set the mode of the script
-construction=False # set to True for construction mode
-testing=True # set to False for live display
+construction = False # set to True for construction mode
+testing = True # set to False for live display
 funmode = False # set to False for boring mode
 
 screensavepath = 'screen_image/img2display.png'
@@ -35,7 +35,12 @@ from waveshare_epd import epd7in5
 logging.basicConfig(level=logging.DEBUG)
 
 # Set the font sizes
-font = {18: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 18),
+font = {
+        10: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 10),
+        12: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 12),
+        14: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 14),
+        16: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 16),
+        18: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 18),
         20: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 20),
         22: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 22),
         24: ImageFont.truetype(os.path.join(picdir, 'Font.ttc'), 24),
@@ -97,47 +102,51 @@ def place_icon(Mimage, draw, iconpath, x, y, width, height):
 def place_infobox(Himage,draw,today,hourly_df,x,y,squaresize=64,fontsize=24):
     if construction: draw.rectangle((x, y, x+squaresize*2+buffer*2, y+squaresize), outline=0, fill = 255)
 
-    # place the temperature min and max
-    # method 1 for finding the max and min temperatures
-    maxtemp = 0
-    for row in hourly_df["RealFeelTemperature"]:
-        if row["Value"]>maxtemp:
-            maxtemp = row["Value"]
-    maxtemp = round(maxtemp)
-    #
-    mintemp = 1e32
-    for row in hourly_df["RealFeelTemperature"]:
-        if row["Value"]<mintemp:
-            mintemp = row["Value"]
-    mintemp = round(mintemp)
-    # method 2 for finding the max and min temperatures
-    # maxtemp = round(today["RealFeelTemperatureMax"]['Value'])
-    # mintemp = round(today["RealFeelTemperatureMin"]['Value'])
-    # now place the max and min temperatures
-    draw.text((x, y), 'MAX: '+str(maxtemp), font = font[32], fill = 0)
-    draw.text((x, y+squaresize//2), 'MIN: '+str(mintemp), font = font[32], fill = 0)
+    def place_first_row():
+        # place the temperature min and max
+        # method 1 for finding the max and min temperatures
+        maxtemp = 0
+        for row in hourly_df["RealFeelTemperature"]:
+            if row["Value"]>maxtemp:
+                maxtemp = row["Value"]
+        maxtemp = round(maxtemp)
+        #
+        mintemp = 1e32
+        for row in hourly_df["RealFeelTemperature"]:
+            if row["Value"]<mintemp:
+                mintemp = row["Value"]
+        mintemp = round(mintemp)
+        # method 2 for finding the max and min temperatures
+        # maxtemp = round(today["RealFeelTemperatureMax"]['Value'])
+        # mintemp = round(today["RealFeelTemperatureMin"]['Value'])
+        # now place the max and min temperatures
+        draw.text((x, y), 'Max', font = font[32], fill = 0)
+        draw.text((x, y+squaresize//2), 'Min', font = font[32], fill = 0)
+        draw.text((x+64, y), ': '+str(maxtemp), font = font[32], fill = 0)
+        draw.text((x+64, y+squaresize//2), ': '+str(mintemp), font = font[32], fill = 0)
+        return
 
-    # place the moon icon
-    y=y+squaresize+buffer
-    place_moon(Himage,draw,today["Moon"]["Age"],x,y,squaresize=squaresize,fontsize=fontsize)
+    # place the first row
+    place_first_row()
 
-    # place the precipitation probability
-    precipitation_probability = round(hourly_df["PrecipitationProbability"].max())
-    place_precipitation(Himage,draw,precipitation_probability, x,y+squaresize+buffer,squaresize=squaresize,fontsize=18)
+    xpos1 = x
+    xpos2 = x+squaresize+2*buffer
+    increment = squaresize+2*buffer
 
-    # place the UV index
-    uvindex = today["UVIndex"]["Value"]
-    place_uvindex(Himage,draw,uvindex,x+squaresize+2*buffer,y,squaresize=squaresize,fontsize=64)
+    # place the second row (moon and precipitation)
+    y=y+increment
+    place_precipitation(Himage,draw,round(hourly_df["PrecipitationProbability"].max()), xpos1,y,squaresize=squaresize,fontsize=18)
+    place_moon(Himage,draw,today["Moon"]["Age"],xpos2,y,squaresize=squaresize,fontsize=fontsize)
 
-    # place the pollen
-    # maxpollen = max(today["Tree"]["Value"],today["Grass"]["Value"],today["Ragweed"]["Value"])
-    # place_pollen(Himage,draw,maxpollen,x+64+2*buffer,y+64+buffer,squaresize=64,fontsize=24)
+    # place the third index (UV and wind)
+    y=y+increment
+    place_wind(Himage,draw,hourly_df["Wind"],xpos1,y,squaresize=squaresize,fontsize=24)
+    place_uvindex(Himage,draw,today["UVIndex"]["Value"],xpos2,y,squaresize=squaresize)
 
-    place_wind(Himage,draw,hourly_df["Wind"],x+squaresize+2*buffer,y+squaresize+buffer,squaresize=squaresize,fontsize=24)
-
-    # place the sunrise and sunset
-    place_sunrise(Himage,draw,x,y+squaresize*2+2*buffer,squaresize=squaresize,fontsize=22)
-    place_sunset(Himage,draw,x+squaresize+2*buffer,y+squaresize*2+2*buffer,squaresize=squaresize,fontsize=22)
+    # place the fourth row (sunrise and sunset)
+    y=y+increment
+    place_sunrise(Himage,draw,xpos1,y,squaresize=squaresize,fontsize=22)
+    place_sunset(Himage,draw,xpos2,y,squaresize=squaresize,fontsize=22)
 
     return
 
@@ -221,7 +230,7 @@ def place_moon(Himage,draw,moon_age,x,y,squaresize,fontsize):
     moon_phase = [''] * 8 # create an empty list
     moon_phase[0]='025-moon-phase-7.bmp' # New moon
     moon_phase[1]='024-moon-phase-6.bmp' # Waxing crescent
-    moon_phase[2]='063-moon-phase-5.bmp' # First quarter - half moon
+    moon_phase[2]='023-moon-phase-5.bmp' # First quarter - half moon
     moon_phase[3]='022-moon-phase-4.bmp' # Waxing gibbous
     moon_phase[4]='021-moon-phase-3.bmp' # Full moon
     moon_phase[5]='019-moon-phase-2.bmp' # Waning gibbous
@@ -333,23 +342,24 @@ def place_sunset(Himage,draw,x,y,squaresize,fontsize):
 def place_precipitation(Himage,draw,probability,x,y,squaresize,fontsize):
     if construction: draw.rectangle((x, y, x+squaresize, y+squaresize), outline=0)
     place_icon(Himage, draw, 'icons/pack1/'+str(squaresize)+'/bmp/012-drop-1.bmp', x, y, 64, 64)
-    draw.text((x+squaresize//2, y+2*squaresize//3), str(probability)+"%", font = font[fontsize], fill = 0, anchor="mm")
+    draw.text((x+squaresize//2, y+2*squaresize//3-1), str(probability)+"%", font = font[fontsize], fill = 0, anchor="mm")
     return
 
 
-def place_uvindex(Himage,draw,uvindex,x,y,squaresize=64,fontsize=24):
+def place_uvindex(Himage,draw,uvindex,x,y,squaresize=64,fontsize=14):
     if construction: draw.rectangle((x, y, x+squaresize, y+squaresize), outline=0)
     if uvindex<3: # low - no protection required
-        pass
+        return
     elif uvindex<6: #medium - some protection advised
         place_icon(Himage, draw, 'icons/pack1/'+str(squaresize)+'/bmp/007-uv-1.bmp', x, y, squaresize, squaresize)
-        pass
     elif uvindex<8: # high - protection required
         place_icon(Himage, draw, 'icons/pack1/'+str(squaresize)+'/bmp/008-uv-2.bmp', x, y, squaresize, squaresize)
     elif uvindex<11: # very high - extra protection required
         place_icon(Himage, draw, 'icons/pack1/'+str(squaresize)+'/bmp/009-uv-3.bmp', x, y, squaresize, squaresize)
     else: # extreme - extra protection required
         place_icon(Himage, draw, 'icons/pack1/'+str(squaresize)+'/bmp/009-uv-3.bmp', x, y, squaresize, squaresize)
+    pass
+    draw.text((x+squaresize//2, y+squaresize//2+6), str(uvindex), font = font[fontsize], fill = 0, anchor="mt")
     return
 
 
