@@ -1,6 +1,3 @@
-[submodule "e-Paper"]
-	path = e-Paper
-	url = https://github.com/pb475/e-Paper
 [submodule "accuweather"]
 	path = accuweather
 	url = https://github.com/pb475/accuweather
