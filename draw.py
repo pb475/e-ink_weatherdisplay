@@ -15,7 +15,7 @@ import asyncio
 
 # Set the mode of the script
 construction = False # set to True for construction mode
-testing = True # set to False for live display
+testing = False # set to False for live display
 funmode = False # set to False for boring mode
 
 screensavepath = 'screen_image/img2display.png'
@@ -28,7 +28,7 @@ if os.path.exists(libdir):
 else:
     raise ValueError(str(libdir)+'path does not exist')
 # import the e-ink display library
-from waveshare_epd import epd7in5
+from waveshare_epd import epd7in5_V2
 
 
 # Set the logging level
@@ -407,7 +407,7 @@ try:
     else:
         logging.info("RUNNING LIVE CONFIGURATION")
         logging.info("init epd class")
-        epd = epd7in5.EPD()
+        epd = epd7in5_V2.EPD()
         logging.info("init and Clear")
         epd.init()
         epd.Clear()
@@ -432,14 +432,14 @@ try:
 
         # Load the pickled data
         current_df,daily_df,hourly_df,requests_remaining=ip.load_all_pickles()
-        if any([current_df is None,daily_df is None,hourly_df is None,requests_remaining is None]):
-            logging.error("No forecast data, printing error to screen")
-            place_icon(Himage, draw, 'icons/pack1/128/bmp/098-warning-sign.bmp', buffer, buffer+128+64, 128, 128)
-            draw.text((2*buffer+128+24, buffer+128+64+12), "No forecast data available", font = font[36],fill=0)
-            draw.text((2*buffer+128+24, buffer+2*128+12), "Recommendation: check logs", font = font[36],fill=0)
-            # input()
-            epd.display(epd.getbuffer(Himage))
-            return
+        #if any([current_df is None,daily_df is None,hourly_df is None,requests_remaining is None]):
+        #    logging.error("No forecast data, printing error to screen")
+        #    place_icon(Himage, draw, 'icons/pack1/128/bmp/098-warning-sign.bmp', buffer, buffer+128+64, 128, 128)
+        #    draw.text((2*buffer+128+24, buffer+128+64+12), "No forecast data available", font = font[36],fill=0)
+        #    draw.text((2*buffer+128+24, buffer+2*128+12), "Recommendation: check logs", font = font[36],fill=0)
+        #    # input()
+        #    epd.display(epd.getbuffer(Himage))
+        #    return
 
         # draw the left/right split line
         draw.rectangle((splitpos-buffer, buffer, splitpos, epd.height-buffer), outline=0, fill = 0) # draw the split line left/right
@@ -589,6 +589,7 @@ try:
         if funmode: draw_bmp_scene(Himage,draw,x1,today_tomorrow_split-bmp_size)
 
         # Display the image with a full refresh
+        Himage.save(screensavepath, 'bmp')
         epd.display(epd.getbuffer(Himage))
         #
         return
@@ -600,12 +601,13 @@ try:
         logging.info("Performing screen cleanup...")
 
         # Create the image
-        for j in range(15):
+        for j in range(2):
             Himage = Image.new('1', (epd.width, epd.height), 0)  # 255: clear the frame
+            Himage.save(screensavepath, 'bmp')
             epd.display(epd.getbuffer(Himage))
             time.sleep(flicker_time)
             # Clear the display
-            epd.clear()
+            epd.Clear()
             time.sleep(flicker_time)
 
         hourly_display()
@@ -615,12 +617,14 @@ try:
     # Define the display functions to be called by the scheduler minutely
     def minutely_display():
         logging.info("Drawing minutely image...")
+        epd.init_part()
         # Load the image from savepath
         Himage = Image.open(screensavepath)
         draw = ImageDraw.Draw(Himage)
         # over-draw the date rectangle
         date_rectangle(draw,buffer,buffer)
         # Display the image with a partial refresh
+        Himage.save(screensavepath, 'bmp')
         epd.display_Partial(epd.getbuffer(Himage), 0, 0, epd.width, epd.height)
         #
         return
@@ -658,7 +662,7 @@ try:
     except KeyboardInterrupt:
         logging.info("ctrl + c:")
         if not testing:
-            epd7in5.epdconfig.module_exit(cleanup=True)
+            epd7in5_V2.epdconfig.module_exit(cleanup=True)
             exit()
 
 except IOError as e:
@@ -667,5 +671,5 @@ except IOError as e:
 except KeyboardInterrupt:
     logging.info("ctrl + c:")
     if not testing:
-        epd7in5.epdconfig.module_exit(cleanup=True)
+        epd7in5_V2.epdconfig.module_exit(cleanup=True)
         exit()
