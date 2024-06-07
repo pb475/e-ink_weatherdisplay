@@ -109,3 +109,21 @@ Enjoy!
 ssh weatherpi@weatherpi.local
 weird thing with python packages:
 screens
+
+
+
+# Using Crontab to run script automatically
+We want to ensure the script runs automatically on boot.
+An easy way to do this is to use crontab.
+Run the following command:
+```
+sudo crontab -e
+```
+Select option 1 for `nano` text editor.
+Then, once editing the file, you should add the following line to the bottom of the file:
+```
+@reboot /home/<USERNAME>/Documents/e-ink_weatherdisplay/initialise_all.sh
+```
+Where `<USERNAME>` is your current username used to set up the raspberry pi.
+In this instance, I cloned the repo into my Documents directory.
+You may need to change the filepath if you have cloned to a different location.
