@@ -104,3 +104,8 @@ These are found at the top of `draw.py`.
    By default this is set to `false`.
 
 Enjoy!
+
+<!-- TODO: sort a few things, push new changes from device to github -->
+ssh weatherpi@weatherpi.local
+weird thing with python packages:
+screens
